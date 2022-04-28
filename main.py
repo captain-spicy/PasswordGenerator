@@ -34,10 +34,34 @@ class PasswordGenerator:
         if counter == 3:
             raise ValueError("Too many guesses! Account locked!")
 
+    def add_site(self):
+        return self.push(input("Please enter a website name to add: "))
 
-new_account = PasswordGenerator(["google", "yahoo", "facebook"])
-new_account.set_password()
-new_account.show_password = True
+
+if __name__ == '__main__':
+
+    new_acc = PasswordGenerator(["google", "yahoo", "facebook"])
+    while True:
+        login = input("Welcome! Do you have an account with us? Please type Y or N : ").upper()
+        if login not in "YN" or len(login) != 1:
+            print("Please enter either Y or N only.")
+            continue
+        if login == 'N':
+            new_acc.set_password()
+            print("New password has been created!")
+            continue
+        elif login == 'Y':
+            new_acc.show_password = True
+            break
+    while True:
+        selection = input("Please choose one of the following options:"
+                          "1. Find password\n 2. Add a new site & password\n"
+                          "3. Remove a site & password\n 4. Amend a password\n"
+                          "5. Exit\n ")
+        # TODO insert case switch statement here with different options
+
+    new_acc.add_site()
+    print(new_acc._sites)
 
 # TODO create dictionary list function that will hold all the websites and passwords
 # TODO create password generator function and get the outputs to reference website keys
