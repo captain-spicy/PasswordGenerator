@@ -39,5 +39,6 @@ new_account = PasswordGenerator(["google", "yahoo", "facebook"])
 new_account.set_password()
 new_account.show_password = True
 
-
-
+# TODO create dictionary list function that will hold all the websites and passwords
+# TODO create password generator function and get the outputs to reference website keys
+# TODO create a save file that the program can use to grab saved sites/passwords for future use
