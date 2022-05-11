@@ -1,11 +1,12 @@
 class PasswordGenerator:
-    def __init__(self, sites):
+    def __init__(self):
         self._set_password = None       # sets initial password to null
-        self._sites = list(sites)       # creates an empty list to hold sites
+        self._sites = dict()            # creates an empty dict to hold sites
         self._show_password = False     # sets initial password visibility to none
 
     def push(self, urls):               # creates function to insert new sites into list
-        self._sites.insert(0, urls)
+        self._sites
+        # TODO finish setting up this section
 
     def set_password(self):             # creates account password
         self._set_password = input("Please create an account password: ")
@@ -40,7 +41,7 @@ class PasswordGenerator:
 
 if __name__ == '__main__':
 
-    new_acc = PasswordGenerator(["google", "yahoo", "facebook"])
+    new_acc = PasswordGenerator(None)
     while True:
         login = input("Welcome! Do you have an account with us? Please type Y or N : ").upper()
         if login not in "YN" or len(login) != 1:
@@ -53,15 +54,33 @@ if __name__ == '__main__':
         elif login == 'Y':
             new_acc.show_password = True
             break
-    while True:
-        selection = input("Please choose one of the following options:"
-                          "1. Find password\n 2. Add a new site & password\n"
-                          "3. Remove a site & password\n 4. Amend a password\n"
-                          "5. Exit\n ")
-        # TODO insert case switch statement here with different options
 
-    new_acc.add_site()
-    print(new_acc._sites)
+    while True:
+        print("Please choose one of the following options:\n"
+              "1. Find a site password\n2. Add a new site & password\n"
+              "3. Remove a site & password\n4. Amend a password\n"
+              "5. Exit\n ")
+
+        selection = int(input())
+
+        match int(str(selection[0])):
+
+            case 1:
+                print("insert site search here")
+                print(new_acc._sites)
+            case 2:
+                new_acc.add_site()
+            case 3:
+                print("insert site removal here")
+            case 4:
+                print("insert amend password func")
+            case 5:
+                print("Goodbye!")
+                break
+            case _:
+                print("Please choose an option from 1 through 5 only.")
+                continue
+
 
 # TODO create dictionary list function that will hold all the websites and passwords
 # TODO create password generator function and get the outputs to reference website keys
