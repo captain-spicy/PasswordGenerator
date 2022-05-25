@@ -1,124 +1,204 @@
 import json
 from cryptography.fernet import Fernet
 from pathlib import Path
+from string import ascii_letters, digits
+from random import choice
 
 
 class PasswordGenerator:
     def __init__(self):
-        self._set_password = None       # sets initial password to None
-        self._sites = dict()            # creates an empty sites dict
-        self._show_password = False     # sets initial password visibility to none
-        self._saved_password = dict()   # creates an empty pass dict
+        self._set_password = None  # sets initial password to None
+        self._sites = dict()  # creates an empty sites dict
+        self._show_password = False  # sets initial password visibility to none
+        self._saved_password = dict()  # creates an empty pass dict
+        self._account_names = dict()  # creates an empty acc dict
 
-    def set_password(self):             # creates account password
-        password = input("Please create an account password: ")
-        self._set_password = password
-        return self._set_password
-
-    def saved_password(self):
-        saved_passwords = self._saved_password
-        path_to_password = "saved_pass.json"
-        path = Path(path_to_password)
-        # key generation for new password being added to list
-        p_key = Fernet.generate_key()
+    def create_acc(self):
+        # creates an encryption key if password is entered correctly
+        # key generation
+        account_key = Fernet.generate_key()
 
         # string the key into a file
-        with open('p_file_key.key', 'wb') as p_file_key:
-            p_file_key.write(p_key)
+        with open('acc_key.key', 'wb') as acc_key:
+            acc_key.write(account_key)
 
-        # checks if the password exists and if not then
-        # creates a file and saves new password to file
-        if path.is_file() is True:
+        new_account = input("New username: ")
+        new_password = input("New password: ")
+        create_acc = self._account_names
 
-            # decrypts the password file if file exists
+        # checks if the acc_list file exists, else creates a new file and encrypts it
+        # if file exists, decrypts file and checks if username is taken
+        path_to_file = 'acc_list.json'
+        path = Path(path_to_file)
+
+        if path.is_file():
             # opens the key
-            with open("p_file_key.key", 'rb') as file_key:
-                p_key = file_key.read()
+            with open("acc_key.key", 'rb') as acc_key:
+                acc_key = acc_key.read()
 
             # using the key
-            p_fernet = Fernet(p_key)
+            acc_key_fernet = Fernet(acc_key)
 
             # opening the encrypted file
-            with open("saved_pass.json", 'rb') as p_enc_file:
-                p_encrypted = p_enc_file.read()
+            with open("acc_list.json", 'rb') as enc_file:
+                acc_list_encrypted = enc_file.read()
 
             # decrypting the file
-            p_decrypted = p_fernet.decrypt(p_encrypted)
+            acc_list_decrypted = acc_key_fernet.decrypt(acc_list_encrypted)
 
             # opening the file in write mode and
             # writing the decrypted data
-            with open("saved_pass.json", 'wb') as p_dec_file:
-                p_dec_file.write(p_decrypted)
+            with open("acc_list.json", 'wb') as dec_file:
+                dec_file.write(acc_list_decrypted)
 
-            # with the file unencrypted, appends new password to file
-            with open("saved_pass.json", "a") as np:
-                json.dump(saved_passwords, np)
-                #TODO come back to this and check if needs to be an append or if needs to check against list
+            # reads the sites list file after decryption and assigns to _account_names dict
+            with open("acc_list.json", 'r') as al:
+                self._account_names = json.load(al)
+
+                if new_account in self._account_names:
+                    print("Username already exists!")
+                else:
+                    # creates a dict format with account and password
+                    create_acc[new_account] = new_password
+
+                    # writes the dict to a json file
+                    with open("acc_list.json", 'a+') as f:
+                        json.dump(create_acc, f)
+
+                    # opening the key
+                    with open('acc_key.key', 'rb') as acc_key:
+                        acc_key = acc_key.read()
+
+                    # using the generated key
+                    acc_key_fernet = Fernet(acc_key)
+
+                    # opening the original file to encrypt
+                    with open("acc_list.json", 'rb') as file:
+                        original = file.read()
+
+                    # encrypting the file
+                    acc_list_encrypted = acc_key_fernet.encrypt(original)
+
+                    # opening the file in write mode and
+                    # writing the encrypted data
+                    with open('acc_list.json', 'wb') as encrypted_file:
+                        encrypted_file.write(acc_list_encrypted)
 
         else:
-            # creates a new file and adds password to file with encryption
-            with open("saved_pass.json", "w") as s_p:
-                json.dump(self._set_password, s_p)
+            # creates a dict format with account and password
+            create_acc[new_account] = new_password
+
+            # writes the dict to a json file
+            with open("acc_list.json", 'a+') as f:
+                json.dump(create_acc, f)
 
             # opening the key
-            with open('p_file_key.key', 'rb') as file_key:
-                key = file_key.read()
+            with open('acc_key.key', 'rb') as acc_key:
+                acc_key = acc_key.read()
 
             # using the generated key
-            fernet = Fernet(key)
+            acc_key_fernet = Fernet(acc_key)
 
             # opening the original file to encrypt
-            with open("saved_pass.json", 'rb') as file:
+            with open("acc_list.json", 'rb') as file:
                 original = file.read()
 
             # encrypting the file
-            encrypted = fernet.encrypt(original)
+            acc_list_encrypted = acc_key_fernet.encrypt(original)
 
             # opening the file in write mode and
             # writing the encrypted data
-            with open('saved_pass.json', 'wb') as encrypted_file:
-                encrypted_file.write(encrypted)
+            with open('acc_list.json', 'wb') as encrypted_file:
+                encrypted_file.write(acc_list_encrypted)
 
-    @property
-    def show_password(self):
-        # currently show password is set to False at SoS
-        return self._show_password
+    def check_acc_name(self):
 
-    @show_password.setter
-    def show_password(self, value):
-        # requests account password, giving 3 chances before locking up
-        counter = 0
+        # checks if the acc_list file exists, else creates a new file and encrypts it
+        # if file exists, decrypts file and checks if username is taken
+        path_to_file = 'acc_list.json'
+        path = Path(path_to_file)
 
-        while counter < 3:
+        if path.is_file():
+            # opens the key
+            with open("acc_key.key", 'rb') as acc_key:
+                acc_key = acc_key.read()
 
-            if value:
-                password = input("Please enter your password: ")
-                if password == self.saved_password():
-                    print("Correct password entered!")
-                    self._show_password = value
+            # using the key
+            acc_key_fernet = Fernet(acc_key)
 
-                    # creates an encryption key if password is entered correctly
-                    # key generation
-                    key = Fernet.generate_key()
+            # opening the encrypted file
+            with open("acc_list.json", 'rb') as enc_file:
+                acc_list_encrypted = enc_file.read()
 
-                    # string the key into a file
-                    with open('file_key.key', 'wb') as file_key:
-                        file_key.write(key)
+            # decrypting the file
+            acc_list_decrypted = acc_key_fernet.decrypt(acc_list_encrypted)
+
+            # opening the file in write mode and
+            # writing the decrypted data
+            with open("acc_list.json", 'wb') as dec_file:
+                dec_file.write(acc_list_decrypted)
+
+            # reads the sites list file after decryption and assigns to _account_names dict
+            with open("acc_list.json", 'r') as al:
+                self._account_names = json.load(al)
+            counter = 0
+
+            while counter < 3:
+                acc_name = input("Username: ")
+                acc_pass = input("Password: ")
+
+                if (acc_name, acc_pass) in self._account_names.items():
+                    print("Login confirmed! Welcome!")
                     break
                 else:
                     counter += 1
-                    print("Incorrect password! Try again!")
+                    print("Invalid login information!")
 
-        if counter == 3:
-            raise ValueError("Too many guesses! Account locked!")
+            if counter == 3:
+                raise ValueError("Too many incorrect guesses! Account locked!")
+
+        else:
+            print("No users currently registered! Please create a new account first.")
 
     def add_site(self):
+        # creates an encryption key to hold websites and passwords
+        # key generation
+        sites_key = Fernet.generate_key()
+
+        # string the key into a file
+        with open('sites_key.key', 'wb') as s_key:
+            s_key.write(sites_key)
+
         # creates a site dict, creates a file to store, and encrypts file
         add_sites = self._sites
 
         print("Please enter a website name to add: \n")
-        site_key = input(print("Website:"))
-        site_value = input(print("Password:"))
+        site_key = input("Website:")
+        print("Create a randomly generated password or enter your own?\n"
+              "(1) Random password generation\n"
+              "(2) Enter my own password\n")
+
+        rand_or_self = int(input("Please choose option 1 or 2: "))
+        while True:
+            match int(rand_or_self):
+                case 1:
+                    print("How many characters does the password need?")
+
+                    def pass_gen(x):
+                        return ''.join([choice(ascii_letters + digits) for i in range(x)])
+
+                    char_count = int(input("Character count required: "))
+                    site_value = pass_gen(char_count)
+                    print("Randomly created password to use: ", site_value)
+                    break
+
+                case 2:
+                    site_value = input("Please enter your own password:")
+                    break
+                case _:
+                    print("Please choose either option 1 or 2 only.")
+                    continue
+
         add_sites[site_key] = site_value
 
         # writes the dict to a json file
@@ -126,43 +206,43 @@ class PasswordGenerator:
             json.dump(add_sites, f)
 
         # opening the key
-        with open('file_key.key', 'rb') as file_key:
-            key = file_key.read()
+        with open('sites_key.key', 'rb') as sites_key:
+            sites_key = sites_key.read()
 
         # using the generated key
-        fernet = Fernet(key)
+        fernet = Fernet(sites_key)
 
         # opening the original file to encrypt
         with open("sites_list.json", 'rb') as file:
             original = file.read()
 
         # encrypting the file
-        encrypted = fernet.encrypt(original)
+        sites_list_encrypted = fernet.encrypt(original)
 
         # opening the file in write mode and
         # writing the encrypted data
         with open('sites_list.json', 'wb') as encrypted_file:
-            encrypted_file.write(encrypted)
+            encrypted_file.write(sites_list_encrypted)
 
     def view_sites(self):
         # opens the key
-        with open("file_key.key", 'rb') as file_key:
-            key = file_key.read()
+        with open("sites_key.key", 'rb') as sites_key:
+            sites_key = sites_key.read()
 
         # using the key
-        fernet = Fernet(key)
+        sites_key_fernet = Fernet(sites_key)
 
         # opening the encrypted file
         with open("sites_list.json", 'rb') as enc_file:
-            encrypted = enc_file.read()
+            sites_list_encrypted = enc_file.read()
 
         # decrypting the file
-        decrypted = fernet.decrypt(encrypted)
+        sites_list_decrypted = sites_key_fernet.decrypt(sites_list_encrypted)
 
         # opening the file in write mode and
         # writing the decrypted data
         with open("sites_list.json", 'wb') as dec_file:
-            dec_file.write(decrypted)
+            dec_file.write(sites_list_decrypted)
 
         # reads the sites list file after decryption and assigns to _sites dict
         with open("sites_list.json", 'r') as sl:
@@ -170,7 +250,7 @@ class PasswordGenerator:
 
         # prints out the site list
         for site_key in self._sites:
-            print(site_key, " : ", self._sites[site_key])
+            print("Website:", site_key, " : ", "Password:", self._sites[site_key])
 
 
 if __name__ == '__main__':
@@ -182,11 +262,10 @@ if __name__ == '__main__':
             print("Please enter either Y or N only.")
             continue
         if login == 'N':
-            new_acc.set_password()
-            print("New password has been created!")
+            new_acc.create_acc()
             continue
         elif login == 'Y':
-            new_acc.show_password = True
+            new_acc.check_acc_name()
             break
 
     while True:
@@ -213,7 +292,4 @@ if __name__ == '__main__':
             case _:
                 print("Please choose an option from 1 through 5 only.")
                 continue
-
-# TODO create dictionary list function that will hold all the websites and passwords
-# TODO create password generator function and get the outputs to reference website keys
-# TODO create a save file that the program can use to grab saved sites/passwords for future use
+#TODO encryption of files not opening existing files correctly, need to research more on encryption/decryption methods
